@@ -76,6 +76,10 @@ def main(nwfile, outfile, title):
         sys.exit('pandoc failed:\n' + p.stderr[:3000])
     out = p.stdout
 
+    # drop pandoc's built-in stylesheet; ours below owns the page
+    out = re.sub(r'<style>(?:(?!</style>).)*max-width: 36em(?:(?!</style>).)*</style>\s*',
+                 '', out, flags=re.S)
+
     # ---- restore [[inline code]] ----
     out = re.sub(r'zQINLz(\d+)zENDz',
                  lambda m: '<code>%s</code>' % html.escape(inline[int(m.group(1))]),
@@ -111,8 +115,11 @@ def main(nwfile, outfile, title):
     out = re.sub(r'zQCHUNKz(\d+)zENDz', render_chunk, out)  # bare sentinels
 
     style = '''<style>
-    html{scroll-behavior:smooth}
+    html{scroll-behavior:smooth;background:#fdfdfa}
     body{max-width:52rem;margin:0 auto;padding:1rem 1.5rem;font:17px/1.55 Georgia,serif;color:#1a1a1a;background:#fdfdfa}
+    h1.title{border-bottom:none;text-align:center;margin-top:1em}
+    blockquote{margin:1em 2em;font-style:italic}
+    table{border-collapse:collapse} td,th{border:1px solid #999;padding:.2em .6em}
     h1{margin-top:2.5em;border-bottom:2px solid #888;padding-bottom:.2em}
     h2{margin-top:1.8em}
     code{font:14px/1.4 "Lucida Console",Menlo,monospace;background:#f0efe8;padding:0 .2em;border-radius:3px}
@@ -126,6 +133,7 @@ def main(nwfile, outfile, title):
     .use{color:#26619c;font-style:italic}
     :target{outline:3px solid #f5c542}
     @media(prefers-color-scheme:dark){
+      html{background:#191a17}
       body{background:#191a17;color:#ddd}
       code{background:#2a2b27}
       #TOC{background:#22231f;border-color:#333}

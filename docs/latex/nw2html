@@ -36,6 +36,31 @@ def parse(lines):
 def slug(name):
     return 'chk-' + re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
 
+# prose macros from docs/latex/Macros.tex, restated so pandoc can expand them
+PRELUDE = r'''
+\newcommand{\co}[1]{\emph{#1}}
+\newcommand{\cmd}[1]{\texttt{#1}}
+\newcommand{\f}[1]{\texttt{#1}}
+\newcommand{\book}[1]{\textsc{#1} book}
+\newcommand{\nobook}[1]{\textsc{#1} book}
+\newcommand{\furl}[1]{\footnote{\url{#1}}}
+\newcommand{\repourl}[1]{Also available at \url{#1}}
+\newcommand{\todo}[1]{}
+\newcommand{\note}[1]{}
+\newcommand{\less}[1]{}
+\newcommand{\plan}{Plan~9\xspace}
+\newcommand{\unix}{UNIX\xspace}
+\newcommand{\principia}{Principia Softwarica\xspace}
+\newcommand{\goken}{Goken\xspace}
+\newcommand{\ocaml}{OCaml\xspace}
+\newcommand{\xix}{XiX\xspace}
+\newcommand{\att}{AT\&T\xspace}
+\newcommand{\license}{All Rights Reserved License\xspace}
+\newcommand{\urlprincipia}{\url{https://www.principia-softwarica.org/}\xspace}
+\newcommand{\urlinstall}{\url{https://www.principia-softwarica.org/getting-started.html}\xspace}
+\newcommand{\urlgoken}{\url{https://github.com/aryx/goken9cc}\xspace}
+'''
+
 def main(nwfile, outfile, title):
     segs = parse(load(nwfile))
 
@@ -67,6 +92,8 @@ def main(nwfile, outfile, title):
     cut = body.find(r'\chapter')
     if cut > 0: body = body[cut:]
     body = body.split(r'\end{document}')[0]
+    body = body.replace(r'{vdiagram}', r'{verbatim}')
+    body = PRELUDE + body
 
     p = subprocess.run(['pandoc', '-f', 'latex', '-t', 'html5', '--toc',
                         '--toc-depth=2', '-s', '--metadata', f'title={title}',
@@ -117,11 +144,15 @@ def main(nwfile, outfile, title):
     # matches the style of principia-softwarica.org
     style = '''<style>
     html{scroll-behavior:smooth}
-    body{max-width:75em;margin:2em auto;padding:0 2em;
+    body{margin:2em 3em;
          font-family:Georgia,"Times New Roman",serif;line-height:1.5;
          color:#222;background:#fff}
-    /* prose stays at a readable measure; code and TOC use the full width */
-    p,ul,ol,blockquote,dl{max-width:44em}
+    /* on wide screens, the TOC becomes a fixed sidebar */
+    @media(min-width:90em){
+      body{margin-left:26em}
+      #TOC{position:fixed;top:0;left:0;bottom:0;width:20em;overflow-y:auto;
+           margin:0;padding:1em 1.5em;border:none;border-right:1px solid #ddd}
+    }
     h1,h2,h3{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;line-height:1.2}
     h1{font-size:2em;margin-bottom:0.2em;margin-top:1.8em}
     h1.title{margin-top:0.5em}

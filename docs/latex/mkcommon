@@ -10,6 +10,8 @@
 SYNCWEB=syncweb $SYNCWEBFLAGS
 #SYNCFLAGS=-md5sum_in_auxfile -less_marks -lang C
 INDEXER=syncweb_indexer
+# .nw -> single-page HTML with hyperlinked chunks (needs python3 + pandoc)
+NW2HTML=$TOP/docs/latex/nw2html
 LINEAGE=$TOP/docs/latex/language-study.list2dot
 #pdflatex --shell-escape? under macOS?
 
@@ -31,6 +33,9 @@ $DOC-$VERSION.pdf: $DOC.tex lineage.pdf $TOP/docs/latex/Config.tex $DOC_EXTRA
    pdflatex $DOC.tex
    pdflatex $DOC.tex
    mv $DOC.pdf $DOC-$VERSION.pdf
+
+html:V:
+	$NW2HTML $DOC.nw $DOC.html 'Principia Softwarica: '^$DOC
 
 $DOC.tex:D: $SRC_ORIG defs_and_uses.list
 	$SYNCWEB -to_tex $DOC.nw defs_and_uses.list
@@ -69,7 +74,7 @@ clean2:V:
 	rm -f *.aux *.toc *.log *.brf *.out *.bbl *.dot *.blg
 
 lpclean:V: clean2
-	rm -f $DOC.tex $DOC.pdf $DOC-$VERSION.pdf
+	rm -f $DOC.tex $DOC.pdf $DOC-$VERSION.pdf $DOC.html
 	rm -f lineage.dot lineage.pdf
 	rm -f defs_and_uses.list
 

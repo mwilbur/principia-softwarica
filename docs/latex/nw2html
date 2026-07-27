@@ -54,9 +54,14 @@ def main(nwfile, outfile, title):
         if kind == 'code':
             tex.append(f'\n\nzQCHUNKz{i}zENDz\n')
         else:
+            # author's telegraphic annotation lines, not meant for rendering
+            buf = [l for l in buf if not re.match(r'\\[ltn]\s', l)]
             t = '\n'.join(buf)
             t = re.sub(r'\[\[(.*?)\]\]', hide_inline, t, flags=re.S)
             t = re.sub(r'~?\\cite\{(.*?)\}', lambda m: f' [{m.group(1)}]', t)
+            # images can't resolve in standalone HTML; options may span lines
+            t = re.sub(r'\\includegraphics\s*(\[[^\]]*\])?\s*\{([^}]*)\}',
+                       lambda m: f'\\emph{{[figure: {m.group(2)}]}}', t, flags=re.S)
             tex.append(t)
     body = '\n'.join(tex)
     cut = body.find(r'\chapter')
